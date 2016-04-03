@@ -195,6 +195,16 @@ function get_cans($status_id = 0) {
 	return $cans;
 }
 
+function get_user($user_id) {
+	//return data for given user
+	$db = new db();
+	
+	$query = "SELECT `user_id`, `firstname`, `lastname`, `type_id` FROM `user` WHERE `user_id` = {$user_id}";
+	$user = $db->get_row($query);
+	
+	return $user;
+}
+
 function get_user_types() {
 	//returns list of user types
 	$db = new db();
@@ -206,11 +216,18 @@ function get_users($type_id = 0) {
 	//returns list of valid users of selected type (all valid users by default)
 	$db = new db();
 
-	$query = "SELECT `user_id`, `firstname`, `lastname`, `type_id` FROM `user` WHERE `valid` = 1";
-	if($type_id)
-		$query .= "AND `type_id` = {$type_id}";
+	$query = "SELECT `user_id` FROM `user` WHERE `valid` = 1";
 	
-	return $db->get_all($query);
+	if($type_id)
+		$query .= " AND `type_id` = {$type_id}";
+
+	$user_ids = $db->get_col($query);
+	
+	foreach($user_ids as $user_id) {
+		$users[] = get_user($user_id);
+	}
+	
+	return $users;
 }
 
 function login($user_id, $password) {
