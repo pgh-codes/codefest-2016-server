@@ -19,6 +19,7 @@ EOS;
 function add_user($firstname, $lastname, $type_id) {
 	//add new user
 	$db = new db();
+	
 	$password = generate_password($firstname);
 
 	$firstname = $db->clean($firstname);
@@ -29,6 +30,31 @@ function add_user($firstname, $lastname, $type_id) {
 	$db->query($query);
 	
 	return $password;
+}
+
+function create_route($user_id, $can_ids) {
+	//reserve the cans needed to form a route
+	
+	foreach($can_ids as $can_id) {
+		reserve_event($can_id, $user_id);
+	}
+	
+	return TRUE;
+}
+
+function end_event($can_id) {
+	//mark all events for given can as resolved
+	$db = new db();
+	
+	$query = <<<EOS
+UPDATE `pickup_event`
+SET `pickup_date` = CURRENT_DATE(), `pickup_time` = CURRENT_TIME()
+WHERE `pickup_date` IS NULL 
+AND `can_id` = {$can_id}
+EOS;
+	$db->query($query);
+	
+	return TRUE;
 }
 
 function generate_password($firsthalf) {
@@ -65,6 +91,35 @@ function generate_password($firsthalf) {
 	$index = time() % sizeof($animals);
 	
 	return $firsthalf . $animals[$index];
+}
+
+function generate_report($start_date, $end_date, $user_id = NULL) {
+	//generate a list of events created (for PDP users) or ended (for DPW users)
+	//over given date range
+	$db = new db();
+	
+	$start_date = $db->clean($start_date);
+	$end_date = $db->clean($end_date);
+	
+	
+	$query = "SELECT * FROM `pickup_event` WHERE `bag_date` BETWEEN '{$start_date}' AND '{$end_date}'";
+	
+	if($user_id) {
+		$user_type_id = $db->get_one("SELECT `type_id` FROM `user` WHERE `user_id` = {$user_id}");
+		$query .= ($user_type_id == 3) ? " AND `pdp_user_id` = {$user_id}" : " AND `dpw_user_id` = {$user_id}";
+	}
+
+	$events = $db->get_all($query);
+	
+	foreach($events as &$event) {
+		$event['can_type'] = $db->get_one("SELECT `name` FROM `can_type` JOIN `can` USING (`type_id`) WHERE can_id = {$event['can_id']}");
+		$event['pdp_user_name'] = $db->get_one("SELECT CONCAT_WS(' ', firstname, lastname) FROM `user` WHERE `user_id` = {$event['pdp_user_id']}");
+		if($event['dpw_user_id'])
+			$event['dpw_user_name'] = $db->get_one("SELECT CONCAT_WS(' ', firstname, lastname) FROM `user` WHERE `user_id` = {$event['dpw_user_id']}");
+	}
+	unset($event);
+	
+	return $events;
 }
 
 function get_can($can_id) {
@@ -116,7 +171,7 @@ function get_can_types() {
 	return $db->get_all("SELECT * FROM `can_type`");
 }
 
-function get_cans() {
+function get_cans($status_id = 0) {
 	//returns list of all cans, and their "status"
 	$db = new db();
 	
@@ -124,8 +179,16 @@ function get_cans() {
 	$can_ids = $db->get_all($query);
 	
 	$cans = array();
-	foreach($can_ids as $can_id)
-		$cans[] = get_can($can_id);
+	foreach($can_ids as $can_id) {
+		if($status_id)
+		{
+			$can = get_can($can_id);
+			if($can['status_id'] == $status_id)
+				$cans[] = $can;
+		}
+		else
+			$cans[] = get_can($can_id);
+	}
 	
 	return $cans;
 }
@@ -181,7 +244,7 @@ function release_events($user_id) {
 
 	$query = <<<EOS
 UPDATE `pickup_events` SET `dpw_user_id` = NULL, `reserve_date` = NULL, `reserve_time` = NULL
-WHERE `pickup_date` IS NULL AND `user_id` = {$user_id}
+WHERE `pickup_date` IS NULL AND `dpw_user_id` = {$user_id}
 EOS;
 	$db->query($query);
 	
@@ -206,6 +269,14 @@ function remove_user($user_id) {
 	$db->query($query);
 	
 	return TRUE;
+}
+
+function reserve_event($can_id, $user_id) {
+	//reserve any unreserved events at the given can
+	$db = new db();
+	
+	$query = "UPDATE `pickup_event` SET `dpw_user_id` = {$user_id}, `reserve_date` = CURRENT_DATE(), `reserve_time` = CURRENT_TIME() WHERE `reserve_date` IS NULL AND `can_id` = {$can_id}";
+	$db->query($query);
 }
 
 function reset_password($user_id) {
@@ -239,12 +310,25 @@ function start_event($can_id, $bag_count, $user_id, $notes) {
 	$db = new db();
 	
 	$notes = $db->clean($notes);
+
+	//if an unfinished event for this can is already assigned
+	//assign this event to that driver too
+	$query = "SELECT `dpw_user_id` FROM `pickup_event` WHERE `pickup_date` IS NULL AND `can_id` = {$can_id}";
+	$dpw_user_id = $db->get_one($query);
+	
+	if($dpw_user_id)
+	{
+		$reserve_date = "CURRENT_DATE()";
+		$reserve_time = "CURRENT_TIME()";
+	}
+	else
+		$dpw_user_id = $reserve_date = $reserve_time = "NULL";
 	
 	$query = <<<EOS
 INSERT INTO `pickup_event`
-(`can_id`, `bag_count`, `pdp_user_id`, `bag_date`, `bag_time`, `notes`)
+(`can_id`, `bag_count`, `pdp_user_id`, `bag_date`, `bag_time`, `dpw_user_id`, `reserve_date`, `reserve_time`, `notes`)
 VALUES
-({$can_id}, {$bag_count}, {$user_id}, '{$notes}')
+({$can_id}, {$bag_count}, {$user_id}, CURRENT_DATE(), CURRENT_TIME(), {$dpw_user_id}, {$reserve_date}, {$reserve_time}, '{$notes}')
 EOS;
 	$db->query($query);
 	
