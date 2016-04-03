@@ -13,7 +13,9 @@ VALUES
 EOS;
 	$db->query($query);
 	
-	return TRUE;
+	$can_id = $db->get_one("SELECT LAST_INSERT_ID");
+	
+	return $can_id;
 }
 
 function add_user($firstname, $lastname, $type_id) {
@@ -332,7 +334,9 @@ VALUES
 EOS;
 	$db->query($query);
 	
-	return TRUE;
+	$event_id = $db->get_one("SELECT LAST_INSERT_ID");
+	
+	return $event_id;
 }
 
 function testing($display) {
