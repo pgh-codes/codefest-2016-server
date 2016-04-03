@@ -1,6 +1,21 @@
 <?php
 include_once("db-config.php");
 
+function add_can($type_id, $latitude, $longitude) {
+	//add a new can
+	$db = new db();
+	
+	$query = <<<EOS
+INSERT INTO `can`
+(`type_id`, `latitude`, `longitude`)
+VALUES
+({$type_id}, {$latitude}, {$longitude})
+EOS;
+	$db->query($query);
+	
+	return TRUE;
+}
+
 function add_user($firstname, $lastname, $type_id) {
 	//add new user
 	$db = new db();
@@ -64,32 +79,41 @@ function get_can($can_id) {
 	
 	//determine what status the can is in
 	$query = "SELECT * FROM `pickup_event` WHERE `pickup_date` IS NULL AND `can_id` = {$can_id}"
-	$can['event'] = $db->get_row($query);
+	$can['events'] = $db->get_all($query);
 	
-	if(!$current_event) {
+	if(!$can['events']){
 		$can['status_id'] = 1; //No Action Necessary (Gray)
 	}
 	else {
-		$can['event']['pdp_user_name'] = $db->get_one("SELECT CONCAT_WS(' ', firstname, lastname) FROM `user` WHERE `user_id` = {$can['event']['pdp_user_id']}");
+		foreach($can['events'] as $event) {
+			$event['pdp_user_name'] = $db->get_one("SELECT CONCAT_WS(' ', firstname, lastname) FROM `user` WHERE `user_id` = {$event['pdp_user_id']}");
 
-		if($current['reserve_date']) {
-			$can['event']['dpw_user_name'] = $db->get_one("SELECT CONCAT_WS(' ', firstname, lastname) FROM `user` WHERE `user_id` = {$can['event']['dpw_user_id']}");
-			$can['status_id'] = 2; //Reserved For Pickup (Blue)
-		}
-		else {
-			$two_hours_ago = strtotime("-2 hour");
-			$four_hours_ago = strtotime("-4 hour");
+			if($current['reserve_date']) {
+				$event['dpw_user_name'] = $db->get_one("SELECT CONCAT_WS(' ', firstname, lastname) FROM `user` WHERE `user_id` = {$event['dpw_user_id']}");
+				$can['status_id'] = ($can['status_id'] < 2) ? 2 : $can['status_id']; //Reserved For Pickup (Blue)
+			}
+			else {
+				$two_hours_ago = strtotime("-2 hour");
+				$four_hours_ago = strtotime("-4 hour");
 			
-			if(strtotime("{$can['event']['bag_date']} {$can['event']['bag_time']}") > $two_hours_ago)
-				$can['status_id'] = 3; //Bagged Under Two Hours Ago (Green)
-			elseif(strtotime("{$can['event']['bag_date']} {$can['event']['bag_time']}") > $four_hours_ago)
-				$can['status_id'] = 4; //Bagged Under Four Hours Ago (Yellow)
-			else
-				$can['status_id'] = 5; //Bagged Over Four Hours Ago (Red)
+				if(strtotime("{$event['bag_date']} {$event['bag_time']}") > $two_hours_ago)
+					$can['status_id'] = ($can['status_id'] < 3) ? 3 : $can['status_id']; //Bagged Under Two Hours Ago (Green)
+				elseif(strtotime("{$event['bag_date']} {$event['bag_time']}") > $four_hours_ago)
+					$can['status_id'] = ($can['status_id'] < 4) ? 4 : $can['status_id']; //Bagged Under Four Hours Ago (Yellow)
+				else
+					$can['status_id'] = ($can['status_id'] < 5) ? 5 : $can['status_id']; //Bagged Over Four Hours Ago (Red)
+			}
 		}
 	}
 	
 	return $can;
+}
+
+function get_can_types() {
+	//returns list of can types
+	$db = new db();
+	
+	return $db->get_all("SELECT * FROM `can_type`");
 }
 
 function get_cans() {
@@ -164,8 +188,18 @@ EOS;
 	return TRUE;
 }
 
+function remove_can($can_id) {
+	//remove the given can from view
+	$db = new db();
+	
+	$query = "UPDATE `can` SET `valid` = 0 WHERE `can_id` = {$can_id}";
+	$db->query($query);
+	
+	return TRUE;
+}
+
 function remove_user($user_id) {
-	//remove the given use from view
+	//remove the given user from view
 	$db = new db();
 	
 	$query = "UPDATE `user` SET `valid` = 0 WHERE `user_id` = {$user_id}";
@@ -195,6 +229,37 @@ function set_password($user_id, $password) {
 	$password = $db->clean($password);
 
 	$query = "UPDATE `user` SET `password` = MD5('{$password}') WHERE `user_id` = {$user_id}";
+	$db->query($query);
+	
+	return TRUE;
+}
+
+function start_event($can_id, $bag_count, $user_id, $notes) {
+	//create a new event for the given can
+	$db = new db();
+	
+	$notes = $db->clean($notes);
+	
+	$query = <<<EOS
+INSERT INTO `pickup_event`
+(`can_id`, `bag_count`, `pdp_user_id`, `bag_date`, `bag_time`, `notes`)
+VALUES
+({$can_id}, {$bag_count}, {$user_id}, '{$notes}')
+EOS;
+	$db->query($query);
+	
+	return TRUE;
+}
+
+function update_can($can_id, $type_id, $latitude, $longitude) {
+	//update all attributes of a can
+	$db = new db();
+	
+	$query = <<<EOS
+UPDATE `can`
+SET `type_id` = {$type_id}, `latitude` = {$latitude}, `longitude` = {$longitude}
+WHERE `can_id` = {$can_id}
+EOS;
 	$db->query($query);
 	
 	return TRUE;
