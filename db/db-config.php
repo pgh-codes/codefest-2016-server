@@ -11,18 +11,18 @@ class db {
 	}
 	
 	function get_one($query) {
-		$result = query($query);
+		$result = $this->query($query);
 		$row = mysqli_fetch_row($result);
 		return $row[0];
 	}
 	
 	function get_row($query) {
-		$result = query($query);
+		$result = $this->query($query);
 		return mysqli_fetch_assoc($result);
 	}
 	
 	function get_col($query) {
-		$result = query($query);
+		$result = $this->query($query);
 		$return_array = array();
 		while($row = mysqli_fetch_row($result)) {
 			$return_array[] = $row[0];
@@ -31,7 +31,7 @@ class db {
 	}
 	
 	function get_all($query) {
-		$result = query($query);
+		$result = $this->query($query);
 		$return_array = array();
 		while($row = mysqli_fetch_assoc($result)) {
 			$return_array[] = $row;

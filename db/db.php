@@ -133,7 +133,7 @@ function get_can($can_id) {
 	$can['type'] = $db->get_row($query);
 	
 	//determine what status the can is in
-	$query = "SELECT * FROM `pickup_event` WHERE `pickup_date` IS NULL AND `can_id` = {$can_id}"
+	$query = "SELECT * FROM `pickup_event` WHERE `pickup_date` IS NULL AND `can_id` = {$can_id}";
 	$can['events'] = $db->get_all($query);
 	
 	if(!$can['events']){
