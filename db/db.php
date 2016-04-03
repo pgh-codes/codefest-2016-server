@@ -176,7 +176,7 @@ function get_cans($status_id = 0) {
 	$db = new db();
 	
 	$query = "SELECT `can_id` FROM `can` WHERE `valid` = 1";
-	$can_ids = $db->get_all($query);
+	$can_ids = $db->get_col($query);
 	
 	$cans = array();
 	foreach($can_ids as $can_id) {
@@ -333,6 +333,11 @@ EOS;
 	$db->query($query);
 	
 	return TRUE;
+}
+
+function testing($display) {
+	echo "<PRE>"; print_r($display); echo "</PRE>";
+	exit;
 }
 
 function update_can($can_id, $type_id, $latitude, $longitude) {
