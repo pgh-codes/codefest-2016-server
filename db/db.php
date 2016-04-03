@@ -52,6 +52,60 @@ function generate_password($firsthalf) {
 	return $firsthalf . $animals[$index];
 }
 
+function get_can($can_id) {
+	//return can info
+	$db = new db();
+	
+	$query = "SELECT `can_id`, `type_id`, `latitude`, `longitude` FROM `can` WHERE `can_id` = {$can_id}";
+	$can = $db->get_row($query);
+
+	$query = "SELECT * FROM `can_type` WHERE `type_id` = {$can['type_id']}";
+	$can['type'] = $db->get_row($query);
+	
+	//determine what status the can is in
+	$query = "SELECT * FROM `pickup_event` WHERE `pickup_date` IS NULL AND `can_id` = {$can_id}"
+	$can['event'] = $db->get_row($query);
+	
+	if(!$current_event) {
+		$can['status_id'] = 1; //No Action Necessary (Gray)
+	}
+	else {
+		$can['event']['pdp_user_name'] = $db->get_one("SELECT CONCAT_WS(' ', firstname, lastname) FROM `user` WHERE `user_id` = {$can['event']['pdp_user_id']}");
+
+		if($current['reserve_date']) {
+			$can['event']['dpw_user_name'] = $db->get_one("SELECT CONCAT_WS(' ', firstname, lastname) FROM `user` WHERE `user_id` = {$can['event']['dpw_user_id']}");
+			$can['status_id'] = 2; //Reserved For Pickup (Blue)
+		}
+		else {
+			$two_hours_ago = strtotime("-2 hour");
+			$four_hours_ago = strtotime("-4 hour");
+			
+			if(strtotime("{$can['event']['bag_date']} {$can['event']['bag_time']}") > $two_hours_ago)
+				$can['status_id'] = 3; //Bagged Under Two Hours Ago (Green)
+			elseif(strtotime("{$can['event']['bag_date']} {$can['event']['bag_time']}") > $four_hours_ago)
+				$can['status_id'] = 4; //Bagged Under Four Hours Ago (Yellow)
+			else
+				$can['status_id'] = 5; //Bagged Over Four Hours Ago (Red)
+		}
+	}
+	
+	return $can;
+}
+
+function get_cans() {
+	//returns list of all cans, and their "status"
+	$db = new db();
+	
+	$query = "SELECT `can_id` FROM `can` WHERE `valid` = 1";
+	$can_ids = $db->get_all($query);
+	
+	$cans = array();
+	foreach($can_ids as $can_id)
+		$cans[] = get_can($can_id);
+	
+	return $cans;
+}
+
 function get_user_types() {
 	//returns list of user types
 	$db = new db();
