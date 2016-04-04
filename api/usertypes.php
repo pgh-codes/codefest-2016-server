@@ -6,17 +6,17 @@ header('Access-Control-Allow-Origin: *');
 
 switch($_SERVER['REQUEST_METHOD']) {
   case GET:
-    if(is_numeric($_GET['userId'])) {
-      $users = get_user($_GET['userId']);
+    if(is_numeric($_GET['type'])) {
+      $usertypes = get_user_type($_GET['type']);
     } else {
-      $users = get_users();
+      $usertypes = get_user_types();
     }
     $resp = array();
-    foreach($users as $user) {
-      $resp[] = array("username" => $user['firstname'] . " " . $user['lastname'], "userid" => $user['user_id'], "type" => $user['type_id']);
+    foreach($usertypes as $usertype) {
+      $resp[] = array("type" => $usertype['type_id'], "name" => $usertype['name']);
     }
 
-    print(json_encode(array("users" => $resp), JSON_NUMERIC_CHECK));
+    print(json_encode(array("usertypes" => $resp), JSON_NUMERIC_CHECK));
     break;
 
   default:
