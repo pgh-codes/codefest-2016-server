@@ -2,6 +2,7 @@
 require_once('../../db/db.php');
 
 header('Content-type: application/json');
+header('Access-Control-Allow-Origin: *');
 
 switch($_SERVER['REQUEST_METHOD']) {
   case POST:

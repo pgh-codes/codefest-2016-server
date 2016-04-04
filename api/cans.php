@@ -14,14 +14,14 @@ switch ($_SERVER['REQUEST_METHOD']) {
     print(json_encode(array("cans" => $resp), JSON_NUMERIC_CHECK));
     break;
   case 'POST':
-    $req = file_get_contents('php://input');
+    $req_json = file_get_contents('php://input');
 
-    if($req == "" || $req == null) {
+    if($req_json == "" || $req_json == null) {
       print(json_encode(array("success" => false, "error" => "No data received", "canId" => "")));
       break;
     }
 
-    $can_info = json_decode($req, true);
+    $can_info = json_decode($req_json, true);
 
     if($_REQUEST['canId'] != "") {
       $can_id = $_REQUEST['canId'];
@@ -30,6 +30,9 @@ switch ($_SERVER['REQUEST_METHOD']) {
       $can_id = add_can($can_info['type'], $can_info['lat'], $can_info['lng']);
     }
     print(json_encode(array("success" => true, "error" => "", "canId" => $can_id)));
+    break;
+  default:
+    print(json_encode(array("success" => false, "error" => "Unsupported request method")));
     break;
 }
 
