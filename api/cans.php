@@ -6,14 +6,11 @@ header('Access-Control-Allow-Origin: *');
 
 switch ($_SERVER['REQUEST_METHOD']) {
   case 'GET':
-	$req_json = file_get_contents('php://input');
-  
-	if($req_json == "" || $req_json == null) {
-		$cans = get_cans();
-	} else {
-		$can_info = json_decode($req_json, true);
-		$cans = array(get_can($can_info['canId']));
-	}
+    if(isset($_GET['canId']) && $_GET['canId'] != "") {
+      $cans = array(get_can($_GET['canId']));
+    } else {
+      $cans = get_cans();
+    }
   
     $resp = array();
     foreach($cans as $can) {
