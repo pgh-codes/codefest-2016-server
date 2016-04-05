@@ -6,7 +6,15 @@ header('Access-Control-Allow-Origin: *');
 
 switch ($_SERVER['REQUEST_METHOD']) {
   case 'GET':
-    $cans = get_cans();
+	$req_json = file_get_contents('php://input');
+  
+	if($req_json == "" || $req_json == null) {
+		$cans = get_cans();
+	} else {
+		$can_info = json_decode($req_json, true);
+		$cans = array(get_can($can_info['canId']));
+	}
+  
     $resp = array();
     foreach($cans as $can) {
       $resp[] = array("id" => $can['can_id'], "type" => $can['type_id'], "lat" => $can['latitude'], "lng" => $can['longitude']);
