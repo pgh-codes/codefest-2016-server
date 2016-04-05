@@ -128,7 +128,7 @@ function get_can($can_id) {
 	//return can info
 	$db = new db();
 
-	$query = "SELECT `can_id`, `type_id`, `latitude`, `longitude` FROM `can` WHERE `can_id` = {$can_id}";
+	$query = "SELECT `can_id`, `approx_location`, `type_id`, `latitude`, `longitude` FROM `can` WHERE `can_id` = {$can_id}";
 	$can = $db->get_row($query);
 
 	$query = "SELECT * FROM `can_type` WHERE `type_id` = {$can['type_id']}";

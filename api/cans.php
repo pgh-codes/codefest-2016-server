@@ -16,7 +16,7 @@ switch ($_SERVER['REQUEST_METHOD']) {
   
     $resp = array();
     foreach($cans as $can) {
-      $resp[] = array("id" => $can['can_id'], "type" => $can['type_id'], "lat" => $can['latitude'], "lng" => $can['longitude'], "lastPickup" => $can['last_pickup'], "recentNotes" => $can['recent_notes']);
+      $resp[] = array("id" => $can['can_id'], "approxLocation" => $can['approx_location'], "type" => $can['type_id'], "lat" => $can['latitude'], "lng" => $can['longitude'], "lastPickup" => $can['last_pickup'], "recentNotes" => $can['recent_notes']);
     }
     print(json_encode(array("cans" => $resp), JSON_NUMERIC_CHECK));
     break;
