@@ -134,6 +134,12 @@ function get_can($can_id) {
 	$query = "SELECT * FROM `can_type` WHERE `type_id` = {$can['type_id']}";
 	$can['type'] = $db->get_row($query);
 
+	$query = "SELECT CONCAT_WS(' ', `pickup_date`, `pickup_time`) FROM `pickup_event` WHERE `can_id` = {$can_id} ORDER BY `pickup_date` DESC, `pickup_time` DESC LIMIT 0, 1";
+	$can['last_pickup'] = $db->get_one($query);
+	
+	$query = "SELECT `bag_date`, `notes` FROM `pickup_event` WHERE `notes` <> '' AND `can_id` = {$can_id} ORDER BY `bag_date` DESC, `bag_time` DESC LIMIT 0, 3";
+	$can['recent_notes'] = $db->get_all($query);
+	
 	//determine what status the can is in
 	$query = "SELECT * FROM `pickup_event` WHERE `pickup_date` IS NULL AND `can_id` = {$can_id}";
 	$can['events'] = $db->get_all($query);
