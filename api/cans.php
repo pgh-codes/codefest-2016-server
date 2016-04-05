@@ -8,7 +8,7 @@ switch ($_SERVER['REQUEST_METHOD']) {
   case 'GET':
     if(isset($_GET['canId']) && $_GET['canId'] != "") {
       $cans = array(get_can($_GET['canId']));
-    } elseif(isset($_GET['statusId']) && $_GET['statusId'] != "")) {
+    } elseif(isset($_GET['statusId']) && $_GET['statusId'] != "") {
 		$cans = get_cans($_GET['statusId'])
 	} else {
       $cans = get_cans();
