@@ -140,6 +140,7 @@ function get_can($can_id) {
 	
 	$query = "SELECT `bag_date`, `notes` FROM `pickup_event` WHERE `notes` <> '' AND `can_id` = {$can_id} ORDER BY `bag_date` DESC, `bag_time` DESC LIMIT 0, 3";
 	$can['recent_notes_raw'] = $db->get_all($query);
+	$can['recent_notes'] = array();
 	foreach($can['recent_notes_raw'] as $note) {
 		$can['recent_notes'][] = $note['notes'] . date("(M j, Y)", strtotime($note['bag_date']));
 	}
