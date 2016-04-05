@@ -8,13 +8,15 @@ switch ($_SERVER['REQUEST_METHOD']) {
   case 'GET':
     if(isset($_GET['canId']) && $_GET['canId'] != "") {
       $cans = array(get_can($_GET['canId']));
-    } else {
+    } elseif(isset($_GET['statusId']) && $_GET['statusId'] != "")) {
+		$cans = get_cans($_GET['statusId'])
+	} else {
       $cans = get_cans();
     }
   
     $resp = array();
     foreach($cans as $can) {
-      $resp[] = array("id" => $can['can_id'], "type" => $can['type_id'], "lat" => $can['latitude'], "lng" => $can['longitude']);
+      $resp[] = array("id" => $can['can_id'], "type" => $can['type_id'], "lat" => $can['latitude'], "lng" => $can['longitude'], "lastPickup" => $can['last_pickup'], "recentNotes" => $can['recent_notes']);
     }
     print(json_encode(array("cans" => $resp), JSON_NUMERIC_CHECK));
     break;
