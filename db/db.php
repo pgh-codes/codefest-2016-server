@@ -165,6 +165,8 @@ function get_can($can_id) {
 				$two_hours_ago = strtotime("-2 hour");
 				$four_hours_ago = strtotime("-4 hour");
 
+				echo "<PRE>"; print_r(strtotime("{$event['bag_date']} {$event['bag_time']}") . " > " . strtotime("-2 hour")); echo "</PRE>";
+				
 				if(strtotime("{$event['bag_date']} {$event['bag_time']}") > $two_hours_ago)
 					$can['status_id'] = ($can['status_id'] < 3) ? 3 : $can['status_id']; //Bagged Under Two Hours Ago (Green)
 				elseif(strtotime("{$event['bag_date']} {$event['bag_time']}") > $four_hours_ago)
