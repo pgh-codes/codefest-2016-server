@@ -138,7 +138,7 @@ function get_can($can_id) {
 	$can['last_pickup_raw'] = $db->get_one($query);
 	$can['last_pickup'] = ($can['last_pickup_raw']) ? date("n/j/y @ g:i A", strtotime($can['last_pickup_raw'])) : "";
 	
-	$one_month_ago = date("Y-m-d", strtotime("-1 month"))
+	$one_month_ago = date("Y-m-d", strtotime("-1 month"));
 	$query = "SELECT `bag_date`, `notes` FROM `pickup_event` WHERE `notes` <> '' AND `can_id` = {$can_id} AND `bag_date` >= '{$one_month_ago}' ORDER BY `bag_date` DESC, `bag_time` DESC LIMIT 0, 3";
 	$can['recent_notes_raw'] = $db->get_all($query);
 	$can['recent_notes'] = array();
