@@ -173,6 +173,8 @@ function get_can($can_id) {
 			}
 		}
 	}
+	
+	$can['color'] = $db->get_one("SELECT `color` FROM `can_status` WHERE `status_id` = {$can['status_id']}")
 
 	return $can;
 }
