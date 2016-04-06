@@ -142,7 +142,7 @@ function get_can($can_id) {
 	$can['recent_notes_raw'] = $db->get_all($query);
 	$can['recent_notes'] = array();
 	foreach($can['recent_notes_raw'] as $note) {
-		$can['recent_notes'][] = $note['notes'] . date("(M j, Y)", strtotime($note['bag_date']));
+		$can['recent_notes'][] = $note['notes'] . " " . date("(M j, Y)", strtotime($note['bag_date']));
 	}
 	
 	//determine what status the can is in
