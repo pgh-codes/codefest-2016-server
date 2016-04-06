@@ -20,7 +20,7 @@ switch($_SERVER['REQUEST_METHOD']) {
     }
     session_start();
     if(isset($_SESSION['info']) && $_SESSION['info']['user_id'] > 0 ) {
-      $new_event = start_event($req['canId'], $req['bags'], $_SESSION['info']['user_id'], $req['note'] = null);
+      $new_event = start_event($req['canId'], $req['bags'], $_SESSION['info']['user_id'], $req['note']);
       print(json_encode(array("success" => "true", "error" => "", "eventId" => $new_event)));
       break;
     } else {
