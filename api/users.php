@@ -40,7 +40,27 @@ switch($_SERVER['REQUEST_METHOD']) {
         break;
       }
     }
-
+  case DELETE:
+    if(isset($_REQUEST['userId']) && is_numeric($_REQUEST['userId'])) {
+      session_start();
+      if(isset($_SESSION['info'])) {
+        $cur_user = get_user($_SESSION['info']);
+        if($cur_user['type_id'] >= 2) {
+          remove_user($_REQUEST['userId']);
+          print(json_encode(array("success" => "true", "error" => "", "userid" => $_REQUEST['userId'])));
+          break;
+        } else {
+          print(json_encode(array("success" => "false", "error" => "Insufficient privileges")));
+          break;
+        }
+      } else {
+        print(json_encode(array("success" => "false", "error" => "Not logged in")));
+        break;
+      }
+    } else {
+      print(json_encode(array("success" => "false", "error" => "userId parameter not specified")));
+      break;
+    }
   default:
     print(json_encode(array("success" => false, "error" => "Unsupported request method")));
     break;
