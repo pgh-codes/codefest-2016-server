@@ -201,6 +201,7 @@ function get_cans($status_id = 0) {
 			$can = get_can($can_id);
 			if(in_array($can['status_id'], $status_id)) {
 				$cans[] = $can;
+			}
 		}
 		else
 			$cans[] = get_can($can_id);
