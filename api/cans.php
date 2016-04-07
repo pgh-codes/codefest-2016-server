@@ -11,7 +11,7 @@ switch ($_SERVER['REQUEST_METHOD']) {
     } elseif(isset($_GET['statusId']) && $_GET['statusId'] != "") {
 		  $cans = get_cans(explode(',', $_GET['statusId']));
 	} else {
-      $cans = get_cans();
+      $cans = get_all_cans_perf();
     }
 
     $resp = array();
