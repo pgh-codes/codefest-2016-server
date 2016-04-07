@@ -124,6 +124,21 @@ function generate_report($start_date, $end_date, $user_id = NULL) {
 	return $events;
 }
 
+function get_many_cans($can_ids) {
+        $db = new db();
+
+        $query = "SELECT `can_id`, `approx_location`, `type_id`, `latitude`, `longitude` FROM `can` WHERE `can_id` IN (" . implode(',', $can_ids) . ")";
+        $cans = $db->get_all($query);
+        $query = "SELECT * FROM `can_type`";
+        $can_type_results = $db->get_all($query);
+        $can_types = array();
+        foreach($can_type_results as $can_type) {
+                $can_types[$can_type['type_id']] = $can_type;
+        }
+        //print_r($can_types);
+
+}
+
 function get_can($can_id) {
 	//return can info
 	$db = new db();
