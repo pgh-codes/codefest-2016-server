@@ -9,11 +9,11 @@ switch ($_SERVER['REQUEST_METHOD']) {
     if(isset($_GET['canId']) && $_GET['canId'] != "") {
       $cans = array(get_can($_GET['canId']));
     } elseif(isset($_GET['statusId']) && $_GET['statusId'] != "") {
-		$cans = get_cans($_GET['statusId']);
+		  $cans = get_cans(explode(',', $_GET['statusId']));
 	} else {
       $cans = get_cans();
     }
-  
+
     $resp = array();
     foreach($cans as $can) {
       $resp[] = array("id" => $can['can_id'], "color" => $can['color'], "approxLocation" => $can['approx_location'], "type" => $can['type_id'], "lat" => $can['latitude'], "lng" => $can['longitude'], "lastPickup" => $can['last_pickup'], "recentNotes" => $can['recent_notes']);

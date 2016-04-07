@@ -12,9 +12,9 @@ VALUES
 ({$type_id}, {$latitude}, {$longitude})
 EOS;
 	$db->query($query);
-	
+
 	$can_id = $db->get_one("SELECT LAST_INSERT_ID");
-	
+
 	return $can_id;
 }
 
@@ -137,7 +137,7 @@ function get_can($can_id) {
 	$query = "SELECT CONCAT_WS(' ', `pickup_date`, `pickup_time`) FROM `pickup_event` WHERE `can_id` = {$can_id} ORDER BY `pickup_date` DESC, `pickup_time` DESC LIMIT 0, 1";
 	$can['last_pickup_raw'] = $db->get_one($query);
 	$can['last_pickup'] = ($can['last_pickup_raw']) ? date("n/j/y @ g:i A", strtotime($can['last_pickup_raw'])) : "";
-	
+
 	$one_month_ago = date("Y-m-d", strtotime("-1 month"));
 	$query = "SELECT `bag_date`, `notes` FROM `pickup_event` WHERE `notes` <> '' AND `can_id` = {$can_id} AND `bag_date` >= '{$one_month_ago}' ORDER BY `bag_date` DESC, `bag_time` DESC LIMIT 0, 3";
 	$can['recent_notes_raw'] = $db->get_all($query);
@@ -145,7 +145,7 @@ function get_can($can_id) {
 	foreach($can['recent_notes_raw'] as $note) {
 		$can['recent_notes'][] = $note['notes'] . " " . date("(n/j/y)", strtotime($note['bag_date']));
 	}
-	
+
 	//determine what status the can is in
 	$query = "SELECT * FROM `pickup_event` WHERE `pickup_date` IS NULL AND `can_id` = {$can_id}";
 	$can['events'] = $db->get_all($query);
@@ -164,7 +164,7 @@ function get_can($can_id) {
 			else {
 				$two_hours_ago = time() - (60 * 60 * 2);
 				$four_hours_ago = time() - (60 * 60 * 4);
-				
+
 				if(strtotime("{$event['bag_date']} {$event['bag_time']}") > $two_hours_ago)
 					$can['status_id'] = ($can['status_id'] < 3) ? 3 : $can['status_id']; //Bagged Under Two Hours Ago (Green)
 				elseif(strtotime("{$event['bag_date']} {$event['bag_time']}") > $four_hours_ago)
@@ -174,7 +174,7 @@ function get_can($can_id) {
 			}
 		}
 	}
-	
+
 	$can['color'] = $db->get_one("SELECT `color` FROM `can_status` WHERE `status_id` = {$can['status_id']}");
 
 	return $can;
@@ -199,7 +199,7 @@ function get_cans($status_id = 0) {
 		if($status_id)
 		{
 			$can = get_can($can_id);
-			if($can['status_id'] == $status_id)
+			if(in_array($can['status_id'], $status_id)) {
 				$cans[] = $can;
 		}
 		else
@@ -212,10 +212,10 @@ function get_cans($status_id = 0) {
 function get_user($user_id) {
 	//return data for given user
 	$db = new db();
-	
+
 	$query = "SELECT `user_id`, `firstname`, `lastname`, `type_id` FROM `user` WHERE `user_id` = {$user_id}";
 	$user = $db->get_row($query);
-	
+
 	return $user;
 }
 
@@ -231,16 +231,16 @@ function get_users($type_id = 0) {
 	$db = new db();
 
 	$query = "SELECT `user_id` FROM `user` WHERE `valid` = 1";
-	
+
 	if($type_id)
 		$query .= " AND `type_id` = {$type_id}";
 
 	$user_ids = $db->get_col($query);
-	
+
 	foreach($user_ids as $user_id) {
 		$users[] = get_user($user_id);
 	}
-	
+
 	return $users;
 }
 
@@ -364,9 +364,9 @@ VALUES
 ({$can_id}, {$bag_count}, {$user_id}, CURRENT_DATE(), CURRENT_TIME(), {$dpw_user_id}, {$reserve_date}, {$reserve_time}, '{$notes}')
 EOS;
 	$db->query($query);
-	
+
 	$event_id = $db->get_one("SELECT LAST_INSERT_ID");
-	
+
 	return $event_id;
 }
 
