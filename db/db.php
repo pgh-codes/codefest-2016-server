@@ -347,7 +347,7 @@ function release_events($user_id) {
 	$db = new db();
 
 	$query = <<<EOS
-UPDATE `pickup_events` SET `dpw_user_id` = NULL, `reserve_date` = NULL, `reserve_time` = NULL
+UPDATE `pickup_event` SET `dpw_user_id` = NULL, `reserve_date` = NULL, `reserve_time` = NULL
 WHERE `pickup_date` IS NULL AND `dpw_user_id` = {$user_id}
 EOS;
 	$db->query($query);
