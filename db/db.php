@@ -57,8 +57,8 @@ SET `pickup_date` = CURRENT_DATE(), `pickup_time` = CURRENT_TIME()
 WHERE `pickup_date` IS NULL
 AND `can_id` = {$can_id}
 EOS;
-	echo $query; exit;
-	$db->query($query);
+	$result = $db->query($query);
+	echo $result; exit;
 
 	return TRUE;
 }
