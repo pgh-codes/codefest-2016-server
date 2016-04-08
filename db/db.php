@@ -331,17 +331,6 @@ function login($user_id, $password) {
 		return FALSE;
 }
 
-function logout($user_id) {
-	//clears out any user in session data
-	//for drivers, releases any reserved, unfinished pickups
-	if($_SESSION['info']['type_id'] == 4)
-		release_events($user_id);
-
-	unset($_SESSION['info']);
-
-	return TRUE;
-}
-
 function release_events($user_id) {
 	//for the given user, release unfinished pickups
 	$db = new db();
