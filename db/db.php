@@ -147,9 +147,7 @@ function get_all_cans_perf($status_id) {
 	$can_status = array();
 	foreach($outstanding_pickups_un as $pickup) {
 		if(isset($pickup['reserve_date']) && $pickup['reserve_date'] != "") {
-			if (in_array(2, $status_id)) {
-				$can_status[$pickup['can_id']] = 2;
-			}
+			$can_status[$pickup['can_id']] = 2;
 		} else {
 			$time_active = time() - strtotime($pickup['bag_date'] . " " . $pickup['bag_time']);
 			if($time_active > 14400) {
@@ -168,6 +166,9 @@ function get_all_cans_perf($status_id) {
 	}
 
 	foreach($cans as $arr_num => $can) {
+		if(!isset($can_status[$can['can_id']])) {
+			$can_status[$can['can_id']] = 1;
+		}
 		if(!in_array($can_status[$can['can_id']], $status_id)) {
 			unset($cans[$arr_num]);
 		} else {
