@@ -9,9 +9,9 @@ switch ($_SERVER['REQUEST_METHOD']) {
     if(isset($_GET['canId']) && $_GET['canId'] != "") {
       $cans = array(get_can($_GET['canId']));
     } elseif(isset($_GET['statusId']) && $_GET['statusId'] != "") {
-		  $cans = get_cans(explode(',', $_GET['statusId']));
+		  $cans = get_all_cans_perf(explode(',', $_GET['statusId']));
 	} else {
-      $cans = get_all_cans_perf();
+      $cans = get_all_cans_perf(array(1,2,3,4,5));
     }
 
     $resp = array();

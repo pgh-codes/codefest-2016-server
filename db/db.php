@@ -124,15 +124,12 @@ function generate_report($start_date, $end_date, $user_id = NULL) {
 	return $events;
 }
 
-function get_all_cans_perf() {
-        $db = new db();
+function get_all_cans_perf($status_id) {
 
-        // $query = "SELECT `can_id`, `approx_location`, `type_id`, `latitude`, `longitude` FROM `can` WHERE `can_id` IN (" . implode(',', $can_ids) . ")";
-	// $query = "SELECT `c`.`can_id`, `c`.`approx_location`, `c`.`type_id`, `c`.`latitude`, `c`.`longitude`, `t`. FROM `can` `c`";
-	// $all_cans = $db->get_all($query);
+	$db = new db();
 
 	$query = 'SELECT `c`.`can_id`,`c`.`approx_location`,`c`.`type_id`,`c`.`latitude`,`c`.`longitude` FROM `can` `c` LEFT OUTER JOIN `pickup_event` `p` ON `p`.`can_id` = `c`.`can_id` INNER JOIN `can_type` `t` ON `c`.`type_id` = `t`.`type_id` WHERE `p`.`pickup_date` IS NULL';
-        $cans = $db->get_all($query);
+	$cans = $db->get_all($query);
 	$query = "SELECT `t`.* FROM (SELECT `can_id`,`pickup_date`,`pickup_time` FROM `pickup_event` WHERE `pickup_date` IS NOT NULL ORDER BY `pickup_date` DESC, `pickup_time` DESC) `t` GROUP BY `t`.`can_id`";
 	$last_pickups_un = $db->get_all($query);
 
@@ -142,7 +139,7 @@ function get_all_cans_perf() {
 	$query = "SELECT * FROM `can_status`";
 	$status_types_un = $db->get_all($query);
 
-	$last_pickups = array();	
+	$last_pickups = array();
 	foreach($last_pickups_un as $pickup) {
 		$last_pickups[$pickup['can_id']] = $pickup['pickup_date'] . "-" . $pickup['pickup_time'];
 	}
@@ -150,7 +147,9 @@ function get_all_cans_perf() {
 	$can_status = array();
 	foreach($outstanding_pickups_un as $pickup) {
 		if(isset($pickup['reserve_date']) && $pickup['reserve_date'] != "") {
-			$can_status[$pickup['can_id']] = 2;
+			if (in_array(2, $status_id)) {
+				$can_status[$pickup['can_id']] = 2;
+			}
 		} else {
 			$time_active = time() - strtotime($pickup['bag_date'] . " " . $pickup['bag_time']);
 			if($time_active > 14400) {
@@ -162,34 +161,29 @@ function get_all_cans_perf() {
 			}
 		}
 	}
-	
+
 	$status_colors = array();
 	foreach($status_types_un as $status_type) {
 		$status_colors[$status_type['status_id']] = $status_type['color'];
 	}
 
 	foreach($cans as $arr_num => $can) {
-		if(isset($last_pickups[$can['can_id']]) && $last_pickups[$can['can_id']] != "") {
-			$cans[$arr_num]['last_pickup'] = $last_pickups[$can['can_id']];
+		if(!in_array($can_status[$can['can_id']], $status_id)) {
+			unset($cans[$arr_num]);
 		} else {
-			$cans[$arr_num]['last_pickup'] = 0;
-		}
-		if(isset($can_status[$can['can_id']]) && $can_status[$can['can_id']] != "") {
-			$cans[$arr_num]['color'] = $status_colors[$can_status[$can['can_id']]];
-		} else {
-			$cans[$arr_num]['color'] = "gray";
+			if(isset($last_pickups[$can['can_id']]) && $last_pickups[$can['can_id']] != "") {
+				$cans[$arr_num]['last_pickup'] = $last_pickups[$can['can_id']];
+			} else {
+				$cans[$arr_num]['last_pickup'] = 0;
+			}
+			if(isset($can_status[$can['can_id']]) && $can_status[$can['can_id']] != "") {
+				$cans[$arr_num]['color'] = $status_colors[$can_status[$can['can_id']]];
+			} else {
+				$cans[$arr_num]['color'] = "gray";
+			}
 		}
 	}
-			
-			
-        // $query = "SELECT * FROM `can_type`";
-        // $can_type_results = $db->get_all($query);
-        // $can_types = array();
-        // foreach($can_type_results as $can_type) {
-        //         $can_types[$can_type['type_id']] = $can_type;
-        // }
-	// get all current events against cans that are not commplete
-	// $query = "SELECT * FROM `pickup_event` WHERE `pickup_date` IS NULL";
+
 	return($cans);
 
 }
