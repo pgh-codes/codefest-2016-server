@@ -9,8 +9,7 @@ switch ($_SERVER['REQUEST_METHOD']) {
     if(isset($_GET['canId']) && is_numeric($_GET['canId'])) {
       session_start();
       if(isset($_SESSION['info'])) {
-        $cur_user = get_user($_SESSION['info']);
-        if(($cur_user['type_id'] % 2) == 0) {
+        if(($_SESSION['info']['type_id'] % 2) == 0) {
           end_event($_GET['canId']);
           print(json_encode(array("success" => "true", "error" => "")));
           break;

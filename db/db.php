@@ -48,12 +48,16 @@ function end_event($can_id) {
 	//mark all events for given can as resolved
 	$db = new db();
 
+	//this will reserve any events, even those already reserved by others
+	//reserve_event($can_id, $_SESSION['info']['user_id'], 1);
+	
 	$query = <<<EOS
 UPDATE `pickup_event`
 SET `pickup_date` = CURRENT_DATE(), `pickup_time` = CURRENT_TIME()
 WHERE `pickup_date` IS NULL
 AND `can_id` = {$can_id}
 EOS;
+	echo $query; exit;
 	$db->query($query);
 
 	return TRUE;
@@ -359,12 +363,19 @@ function remove_user($user_id) {
 	return TRUE;
 }
 
-function reserve_event($can_id, $user_id) {
+function reserve_event($can_id, $user_id, $force = 0) {
 	//reserve any unreserved events at the given can
 	$db = new db();
 
-	$query = "UPDATE `pickup_event` SET `dpw_user_id` = {$user_id}, `reserve_date` = CURRENT_DATE(), `reserve_time` = CURRENT_TIME() WHERE `reserve_date` IS NULL AND `can_id` = {$can_id}";
+	$force_query = ($force) ? "(`reserve_date` IS NULL OR `dpw_user_id` <> {$user_id})" : "`reserve_date` IS NULL"
+	
+	$query = <<<EOS
+UPDATE `pickup_event` SET `dpw_user_id` = {$user_id}, `reserve_date` = CURRENT_DATE(), `reserve_time` = CURRENT_TIME()
+WHERE `can_id` = {$can_id} AND {$force_query}
+EOS;
 	$db->query($query);
+	
+	return TRUE;
 }
 
 function reset_password($user_id) {
