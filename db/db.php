@@ -367,7 +367,7 @@ function reserve_event($can_id, $user_id, $force = 0) {
 	//reserve any unreserved events at the given can
 	$db = new db();
 
-	$force_query = ($force) ? "(`reserve_date` IS NULL OR `dpw_user_id` <> {$user_id})" : "`reserve_date` IS NULL"
+	$force_query = ($force) ? "(`reserve_date` IS NULL OR `dpw_user_id` <> {$user_id})" : "`reserve_date` IS NULL";
 	
 	$query = <<<EOS
 UPDATE `pickup_event` SET `dpw_user_id` = {$user_id}, `reserve_date` = CURRENT_DATE(), `reserve_time` = CURRENT_TIME()
