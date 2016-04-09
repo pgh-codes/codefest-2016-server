@@ -49,7 +49,7 @@ function end_event($can_id) {
 	$db = new db();
 
 	//this will reserve any events, even those already reserved by others
-	//reserve_event($can_id, $_SESSION['info']['user_id'], 1);
+	reserve_event($can_id, $_SESSION['info']['user_id'], 1);
 	
 	$query = <<<EOS
 UPDATE `pickup_event`
@@ -58,7 +58,6 @@ WHERE `pickup_date` IS NULL
 AND `can_id` = {$can_id}
 EOS;
 	$result = $db->query($query);
-	echo $result; exit;
 
 	return TRUE;
 }
